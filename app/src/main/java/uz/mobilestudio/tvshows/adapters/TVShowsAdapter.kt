@@ -1,8 +1,8 @@
 package uz.mobilestudio.tvshows.adapters
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
@@ -15,33 +15,28 @@ class TVShowsAdapter(var list: List<TVShow>) : RecyclerView.Adapter<TVShowsAdapt
 
     inner class Vh(var itemContainerTvShowBinding: ItemContainerTvShowBinding) :
         RecyclerView.ViewHolder(itemContainerTvShowBinding.root) {
+        @SuppressLint("SetTextI18n")
         fun onBind(tvShow: TVShow) {
-//            Picasso.get().load(tvShow.thumbnail).noFade().into(itemContainerTvShowBinding.imageTVShow,object : Callback{
-//                override fun onSuccess() {
-//                    itemContainerTvShowBinding.imageTVShow.animate().setDuration(300).alpha(1f).start()
-//                }
-//
-//                override fun onError(e: Exception?) {
-//
-//                }
-//            })
-            itemContainerTvShowBinding.tvShow = tvShow
-            itemContainerTvShowBinding.executePendingBindings()
+            itemContainerTvShowBinding.textName.text = tvShow.name
+            itemContainerTvShowBinding.textNetwork.text = tvShow.network + " (" + tvShow.country + ")"
+            itemContainerTvShowBinding.textStarted.text = "Started on: " + tvShow.startDate
+            itemContainerTvShowBinding.textName.text = tvShow.name
+            Picasso.get().load(tvShow.thumbnail).noFade().into(itemContainerTvShowBinding.imageTVShow,object : Callback{
+                override fun onSuccess() {
+                    itemContainerTvShowBinding.imageTVShow.animate().setDuration(300).alpha(1f).start()
+                }
+
+                override fun onError(e: Exception?) {
+
+                }
+            })
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Vh {
-//        return Vh(
-//            ItemContainerTvShowBinding.inflate(
-//                LayoutInflater.from(parent.context),
-//                parent,
-//                false
-//            )
-//        )
         return Vh(
-            DataBindingUtil.inflate(
+            ItemContainerTvShowBinding.inflate(
                 LayoutInflater.from(parent.context),
-                R.layout.item_container_tv_show,
                 parent,
                 false
             )

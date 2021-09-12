@@ -2,8 +2,8 @@ package uz.mobilestudio.tvshows.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import uz.mobilestudio.tvshows.R
@@ -21,7 +21,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         tvShows = ArrayList()
 
@@ -31,21 +32,19 @@ class MainActivity : AppCompatActivity() {
     private fun doInitialization() {
         binding.tvShowsRecyclerView.setHasFixedSize(true)
         viewModel = ViewModelProvider(this).get(MostPopularTVShowsViewModel::class.java)
-        tvShowsAdapter = TVShowsAdapter(tvShows)
-        binding.tvShowsRecyclerView.adapter = tvShowsAdapter
         getMostPopularTVShows()
-
     }
 
     private fun getMostPopularTVShows() {
-        binding.isLoading = true
+        binding.progress.visibility = View.VISIBLE
         viewModel.getMostPopularTVShows(0).observe(this, Observer { mostPopularTVShowsResponse ->
-            binding.isLoading = false
             if (mostPopularTVShowsResponse != null) {
                 if (mostPopularTVShowsResponse.tvShows != null) {
+                    binding.progress.visibility = View.GONE
                     tvShows.clear()
                     tvShows.addAll(mostPopularTVShowsResponse.tvShows!!)
-                    tvShowsAdapter.notifyDataSetChanged()
+                    tvShowsAdapter = TVShowsAdapter(tvShows)
+                    binding.tvShowsRecyclerView.adapter = tvShowsAdapter
                 }
             }
         })
