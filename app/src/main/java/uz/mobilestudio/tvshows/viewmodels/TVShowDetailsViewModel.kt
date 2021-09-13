@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import io.reactivex.Completable
+import io.reactivex.Flowable
 import uz.mobilestudio.tvshows.database.TVShowsDatabase
 import uz.mobilestudio.tvshows.models.TVShow
 import uz.mobilestudio.tvshows.models.TVShowDetails
@@ -24,6 +25,14 @@ class TVShowDetailsViewModel(application: Application) : AndroidViewModel(applic
 
     fun addToWatchList(tvShow: TVShow) : Completable {
         return tvShowsDatabase.tvShowDao().addWatchList(tvShow)
+    }
+
+    fun getTVShowFromWatchlist(tvShowId: String): Flowable<TVShow> {
+        return tvShowsDatabase.tvShowDao().getTVShowFromWatchlist(tvShowId)
+    }
+
+    fun removeFromWatchlist(tvShow: TVShow):Completable {
+        return tvShowsDatabase.tvShowDao().removeFromWatchList(tvShow)
     }
 
 }

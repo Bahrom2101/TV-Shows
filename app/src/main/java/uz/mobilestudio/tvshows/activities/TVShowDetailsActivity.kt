@@ -48,6 +48,7 @@ class TVShowDetailsActivity : AppCompatActivity() {
     lateinit var bottomSheetDialog: BottomSheetDialog
     lateinit var layoutEpisodesBottomSheetBinding: LayoutEpisodesBottomSheetBinding
     lateinit var tvShow: TVShow
+    var isTVShowAvailableInWatchlist = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +65,22 @@ class TVShowDetailsActivity : AppCompatActivity() {
         binding.imageBack.setOnClickListener {
             onBackPressed()
         }
+        checkTVShowInWatchlist()
         getTVShowDetails()
+    }
+
+    private fun checkTVShowInWatchlist() {
+        val compositeDisposable = CompositeDisposable()
+        compositeDisposable.add(
+            tvShowDetailsViewModel.getTVShowFromWatchlist(tvShow.id.toString())
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    isTVShowAvailableInWatchlist = true
+                    binding.imageWatchlist.setImageResource(R.drawable.ic_check)
+                    compositeDisposable.dispose()
+                }
+        )
     }
 
     @SuppressLint("SetTextI18n", "CheckResult")
@@ -154,30 +170,40 @@ class TVShowDetailsActivity : AppCompatActivity() {
                     }
 
                     binding.imageWatchlist.setOnClickListener {
-                        tvShowDetailsViewModel.addToWatchList(tvShow)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(object :CompletableObserver{
-                                override fun onSubscribe(d: Disposable) {
-                                    CompositeDisposable().add(d)
+                        val compositeDisposable = CompositeDisposable()
+                        if (isTVShowAvailableInWatchlist) {
+                            compositeDisposable.add(tvShowDetailsViewModel.removeFromWatchlist(
+                                tvShow
+                            )
+                                .subscribeOn(Schedulers.computation())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe {
+                                    isTVShowAvailableInWatchlist = false
+                                    binding.imageWatchlist.setImageResource(R.drawable.ic_watchlist)
+                                    Toast.makeText(
+                                        applicationContext,
+                                        "Removed from watchlist",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
+                                    compositeDisposable.dispose()
+                                })
+                        } else {
+                            compositeDisposable.add(tvShowDetailsViewModel.addToWatchList(tvShow)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe {
                                     binding.imageWatchlist.setImageResource(R.drawable.ic_check)
                                     Toast.makeText(
-                                        this@TVShowDetailsActivity,
+                                        applicationContext,
                                         "Added to watchlist",
                                         Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-
-                                override fun onComplete() {
-
-                                }
-
-                                override fun onError(e: Throwable) {
-
-                                }
-                            })
+                                    )
+                                        .show()
+                                    compositeDisposable.dispose()
+                                })
+                        }
                     }
-
                     loadBasicTVShowDetails()
                 }
             })
