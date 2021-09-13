@@ -20,7 +20,7 @@ class TVShowsAdapter(var list: List<TVShow>) : RecyclerView.Adapter<TVShowsAdapt
             itemContainerTvShowBinding.textName.text = tvShow.name
             itemContainerTvShowBinding.textNetwork.text = tvShow.network + " (" + tvShow.country + ")"
             itemContainerTvShowBinding.textStarted.text = "Started on: " + tvShow.startDate
-            itemContainerTvShowBinding.textName.text = tvShow.name
+            itemContainerTvShowBinding.textStatus.text = tvShow.status
             Picasso.get().load(tvShow.thumbnail).noFade().into(itemContainerTvShowBinding.imageTVShow,object : Callback{
                 override fun onSuccess() {
                     itemContainerTvShowBinding.imageTVShow.animate().setDuration(300).alpha(1f).start()

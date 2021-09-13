@@ -5,6 +5,7 @@
       <map>
         <entry key="app/src/main/res/drawable/background_tv_show.xml" value="0.34512820512820513" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/activity_tvshow_details.xml" value="0.334375" />
         <entry key="app/src/main/res/layout/item_container_tv_show.xml" value="0.334375" />
       </map>
     </option>
