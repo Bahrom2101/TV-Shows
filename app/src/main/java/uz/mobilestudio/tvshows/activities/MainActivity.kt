@@ -3,6 +3,7 @@ package uz.mobilestudio.tvshows.activities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
@@ -39,15 +40,10 @@ class MainActivity : AppCompatActivity() {
     private fun doInitialization() {
         binding.tvShowsRecyclerView.setHasFixedSize(true)
         viewModel = ViewModelProvider(this).get(MostPopularTVShowsViewModel::class.java)
-        tvShowsAdapter = TVShowsAdapter(tvShows,object : TVShowsListener{
+        tvShowsAdapter = TVShowsAdapter(tvShows, object : TVShowsListener {
             override fun onTVShowClicked(tvShow: TVShow) {
-                val intent = Intent(this@MainActivity,TVShowDetailsActivity::class.java)
-                intent.putExtra("id",tvShow.id)
-                intent.putExtra("name",tvShow.name)
-                intent.putExtra("startDate",tvShow.startDate)
-                intent.putExtra("country",tvShow.country)
-                intent.putExtra("network",tvShow.network)
-                intent.putExtra("status",tvShow.status)
+                val intent = Intent(this@MainActivity, TVShowDetailsActivity::class.java)
+                intent.putExtra("tvShow", tvShow)
                 startActivity(intent)
             }
         })
@@ -64,6 +60,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+        binding.imageWatchlist.setOnClickListener {
+            startActivity(Intent(this, WatchListActivity::class.java))
+        }
         getMostPopularTVShows()
     }
 
@@ -81,21 +80,5 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             })
-    }
-
-    private fun toggleLoading() {
-        if (currentPage == 1) {
-            if (binding.progress1.visibility == View.VISIBLE) {
-                binding.progress1.visibility = View.GONE
-            } else {
-                binding.progress1.visibility = View.VISIBLE
-            }
-        } else {
-            if (binding.progress2.visibility == View.VISIBLE) {
-                binding.progress2.visibility = View.GONE
-            } else {
-                binding.progress2.visibility = View.VISIBLE
-            }
-        }
     }
 }

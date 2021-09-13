@@ -1,9 +1,14 @@
 package uz.mobilestudio.tvshows.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
-class TVShow {
+@Entity(tableName = "tvShows")
+class TVShow : Serializable{
 
+    @PrimaryKey
     @SerializedName("id")
     var id:Int? = null
 

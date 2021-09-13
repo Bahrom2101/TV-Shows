@@ -3,12 +3,14 @@ package uz.mobilestudio.tvshows.activities
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -17,11 +19,23 @@ import androidx.core.text.HtmlCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
+import io.reactivex.CompletableObserver
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import uz.mobilestudio.tvshows.R
+import uz.mobilestudio.tvshows.adapters.EpisodesAdapter
 import uz.mobilestudio.tvshows.adapters.ImageSliderAdapter
 import uz.mobilestudio.tvshows.databinding.ActivityTvshowDetailsBinding
+import uz.mobilestudio.tvshows.databinding.ItemContainerEpisodesBinding
+import uz.mobilestudio.tvshows.databinding.LayoutEpisodesBottomSheetBinding
+import uz.mobilestudio.tvshows.models.TVShow
 import uz.mobilestudio.tvshows.viewmodels.TVShowDetailsViewModel
 import java.lang.Exception
 import java.util.*
@@ -31,11 +45,16 @@ class TVShowDetailsActivity : AppCompatActivity() {
     lateinit var binding: ActivityTvshowDetailsBinding
     lateinit var tvShowDetailsViewModel: TVShowDetailsViewModel
     lateinit var imageSliderAdapter: ImageSliderAdapter
+    lateinit var bottomSheetDialog: BottomSheetDialog
+    lateinit var layoutEpisodesBottomSheetBinding: LayoutEpisodesBottomSheetBinding
+    lateinit var tvShow: TVShow
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityTvshowDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        tvShow = intent.extras?.getSerializable("tvShow") as TVShow
 
         doInitialization()
     }
@@ -48,10 +67,9 @@ class TVShowDetailsActivity : AppCompatActivity() {
         getTVShowDetails()
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "CheckResult")
     private fun getTVShowDetails() {
-        val tvShowId = intent.getIntExtra("id", -1).toString()
-        tvShowDetailsViewModel.getTVShowDetails(tvShowId)
+        tvShowDetailsViewModel.getTVShowDetails(tvShow.id.toString())
             .observe(this, Observer { tvShowDetailsResponse ->
                 binding.progress.visibility = View.GONE
                 if (tvShowDetailsResponse.tvShowDetails != null) {
@@ -110,6 +128,56 @@ class TVShowDetailsActivity : AppCompatActivity() {
                     }
                     binding.buttonWebsite.visibility = View.VISIBLE
                     binding.buttonEpisodes.visibility = View.VISIBLE
+
+                    binding.buttonEpisodes.setOnClickListener {
+                        bottomSheetDialog = BottomSheetDialog(this)
+                        layoutEpisodesBottomSheetBinding =
+                            LayoutEpisodesBottomSheetBinding.inflate(layoutInflater)
+                        bottomSheetDialog.setContentView(layoutEpisodesBottomSheetBinding.root)
+                        layoutEpisodesBottomSheetBinding.episodesRv.adapter =
+                            EpisodesAdapter(tvShowDetailsResponse.tvShowDetails!!.episodes!!)
+                        layoutEpisodesBottomSheetBinding.textTitle.text =
+                            String.format("Episodes | %s", tvShow.name)
+                        layoutEpisodesBottomSheetBinding.imageClose.setOnClickListener {
+                            bottomSheetDialog.dismiss()
+                        }
+                        val frameLayout =
+                            bottomSheetDialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+                        if (frameLayout != null) {
+                            val bottomSheetBehavior: BottomSheetBehavior<View> =
+                                BottomSheetBehavior.from(frameLayout)
+                            bottomSheetBehavior.peekHeight =
+                                Resources.getSystem().displayMetrics.heightPixels
+                            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                        }
+                        bottomSheetDialog.show()
+                    }
+
+                    binding.imageWatchlist.setOnClickListener {
+                        tvShowDetailsViewModel.addToWatchList(tvShow)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(object :CompletableObserver{
+                                override fun onSubscribe(d: Disposable) {
+                                    CompositeDisposable().add(d)
+                                    binding.imageWatchlist.setImageResource(R.drawable.ic_check)
+                                    Toast.makeText(
+                                        this@TVShowDetailsActivity,
+                                        "Added to watchlist",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+
+                                override fun onComplete() {
+
+                                }
+
+                                override fun onError(e: Throwable) {
+
+                                }
+                            })
+                    }
+
                     loadBasicTVShowDetails()
                 }
             })
@@ -175,11 +243,11 @@ class TVShowDetailsActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun loadBasicTVShowDetails() {
-        binding.textName.text = intent.getStringExtra("name")
+        binding.textName.text = tvShow.name
         binding.textNetworkCountry.text =
-            intent.getStringExtra("network") + " (" + intent.getStringExtra("country") + ")"
-        binding.textStatus.text = intent.getStringExtra("status")
-        binding.textStarted.text = intent.getStringExtra("startDate")
+            tvShow.network + " (" + tvShow.country + ")"
+        binding.textStatus.text = tvShow.status
+        binding.textStarted.text = tvShow.startDate
         binding.textName.visibility = View.VISIBLE
         binding.textNetworkCountry.visibility = View.VISIBLE
         binding.textStatus.visibility = View.VISIBLE
