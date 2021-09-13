@@ -8,10 +8,11 @@ import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import uz.mobilestudio.tvshows.R
 import uz.mobilestudio.tvshows.databinding.ItemContainerTvShowBinding
+import uz.mobilestudio.tvshows.listeners.TVShowsListener
 import uz.mobilestudio.tvshows.models.TVShow
 import java.lang.Exception
 
-class TVShowsAdapter(var list: List<TVShow>) : RecyclerView.Adapter<TVShowsAdapter.Vh>() {
+class TVShowsAdapter(var list: List<TVShow>,var tvShowsListener: TVShowsListener) : RecyclerView.Adapter<TVShowsAdapter.Vh>() {
 
     inner class Vh(var itemContainerTvShowBinding: ItemContainerTvShowBinding) :
         RecyclerView.ViewHolder(itemContainerTvShowBinding.root) {
@@ -30,6 +31,9 @@ class TVShowsAdapter(var list: List<TVShow>) : RecyclerView.Adapter<TVShowsAdapt
 
                 }
             })
+            itemContainerTvShowBinding.root.setOnClickListener {
+                tvShowsListener.onTVShowClicked(tvShow)
+            }
         }
     }
 
